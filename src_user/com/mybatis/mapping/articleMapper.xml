@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 写接口的路径 -->
+<mapper namespace="com.mybatis.inter.IArticleOperation">
+    
+    <!--场景:在读取某个用户发表的所有文章   User 联合文章进行查询 方法之一的配置 (多对一的方式) -->  
+	<resultMap type="Article" id="resultUserArticleList">
+		<id column="a_id" property="id" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<association property="user" javaType="User">
+            <id property="id" column="id" />
+            <result property="userName" column="userName" />
+            <result property="userAddress" column="userAddress" />            
+        </association>       
+	</resultMap>
+	
+	
+	<select id="getUserArticles" parameterType="int" resultMap="resultUserArticleList">
+       select user.id,user.userName,user.userAddress,article.a_id,article.title,article.content from article,user where user.id=article.userId and article.userId=#{id}
+    </select>
+
+
+</mapper>

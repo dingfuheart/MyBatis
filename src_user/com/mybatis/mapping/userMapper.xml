@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 为这个mapper指定一个唯一的namespace，namespace的值习惯上设置成包名+sql映射文件名，这样就能够保证namespace的值是唯一的 
+	例如namespace="com.mybatis.mapping.userMapper"就是com.mybatis.mapping(包名)+userMapper(userMapper.xml文件去除后缀) -->
+<mapper namespace="com.mybatis.inter.IUserOperation">
+
+	
+
+	<!-- 在select标签中编写查询的SQL语句， 设置select标签的id属性值必须是唯一的，不能够重复 使用parameterType属性指明查询时使用的参数类型，resultType属性指明查询返回的结果集类型 
+		resultType="me.gacl.domain.User"就表示将查询结果封装成一个User类的对象返回 User类就是users表所对应的实体类 -->
+
+	<!-- 根据id查询得到一个user对象 -->
+	<select id="selectUserByID" parameterType="int" resultType="User">
+		select * from `user` where id = #{id}
+	</select>
+
+    <!-- 为了返回list 类型而定义的resultMap -->
+	<resultMap type="User" id="resultListUser">
+		<id column="id" property="id" />
+		<result column="userName" property="userName" />
+		<result column="userAge" property="userAge" />
+		<result column="userAddress" property="userAddress" />
+	</resultMap>
+	
+	<!-- 返回list 的select 语句，注意 resultMap 的值是指向前面定义好的 -->
+	<select id="selectUsers" parameterType="string" resultMap="resultListUser">
+		select * from user where userName like #{userName}
+	</select>
+
+
+	<!--执行增加操作的SQL语句。id和parameterType 分别与IUserOperation接口中的addUser方法的名字和 参数类型一致。以#{name}的形式引用User参数 
+		的name属性，MyBatis将使用反射读取User参数 的此属性。#{name}中name大小写敏感。引用其他 的gender等属性与此一致。seGeneratedKeys设置 
+		为"true"表明要MyBatis获取由数据库自动生成的主 键；keyProperty="id"指定把获取到的主键值注入 到User的id属性 -->
+	<insert id="addUser" parameterType="User" useGeneratedKeys="true"
+		keyProperty="id">
+		insert into user(userName,userAge,userAddress)
+		values(#{userName},#{userAge},#{userAddress})
+	</insert>
+	
+	
+	<update id="updateUser" parameterType="User" >
+        update user set userName=#{userName},userAge=#{userAge},userAddress=#{userAddress} where id=#{id}
+    </update>
+    
+    <delete id="deleteUser" parameterType="User" >
+        delete from user where id=#{id}
+    </delete>
+	
+	
+	<resultMap type="Article" id="resultListArticle">
+		<id column="a_id" property="id" />
+		<result property="title" column="title" />
+        <result property="content" column="content" /> 
+    </resultMap>
+	
+	<!--场景:在读取某个用户发表的所有文章   User 联合文章进行查询 方法之一的配置 (一对多的方式) -->  
+	<resultMap type="User" id="resultUserArticleList">
+		<id column="id" property="id" />
+		<result property="userName" column="userName" />
+        <result property="userAddress" column="userAddress" />
+		
+		<collection property="arList" ofType="Article">
+            <id property="id" column="a_id" />
+            <result column="title" property="title" />
+		    <result column="content" property="content" />          
+        </collection>       
+	</resultMap>
+	
+	<!-- 场景:在读取某个用户发表的所有文章   User 联合文章进行查询 方法之二的配置 (一对多的方式) -->    
+    <resultMap id="resultUserArticleList-2" type="User">
+        <id property="id" column="id" />
+        <result property="userName" column="userName" />
+        <result property="userAddress" column="userAddress" />
+        <collection property="arList" ofType="Article" resultMap="resultListArticle" />             
+    </resultMap>
+	
+	<select id="getUserArticles" parameterType="int" resultMap="resultUserArticleList-2">
+       select user.id,user.userName,user.userAddress,article.a_id,article.title,article.content from article,user where user.id=article.userId and user.id=#{id}
+    </select>
+
+
+</mapper>
